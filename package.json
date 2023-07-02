@@ -4,7 +4,7 @@
     "unity": "2020.1",
     "displayName": "Scene Vitals",
     "type": "tool",
-    "description": "This tool is designed to debug the memory issue. Add https://github.com/marijnz/unity-toolbar-extender.git in package manager",
+    "description": "This tool is designed to debug the memory issue.",
     "keywords": [
         "scenevitals",
         "Debug"
