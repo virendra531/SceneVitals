@@ -1,0 +1,28 @@
+{
+    "name": "com.virendrakumar531.scenevitals",
+    "version": "0.1.0-preview",
+    "unity": "2020.1",
+    "displayName": "Scene Vitals",
+    "type": "tool",
+    "description": "This tool is designed to debug the memory issue. Add https://github.com/marijnz/unity-toolbar-extender.git in package manager",
+    "keywords": [
+        "scenevitals",
+        "Debug"
+    ],
+    "author": {
+        "name": "Virendra Kumar"
+    },
+    "samples": [
+        {
+            "displayName": "Scene switcher buttons",
+            "description": "Adds two buttons to toolbar which demonstrate handling play mode changes",
+            "path": "Example~/ToolbarExtender/SceneSwitcher"
+        },
+        {
+            "displayName": "Scene view focuser",
+            "description": "Adds a toggle button to toolbar which demonstrates use of EditorPrefs",
+            "path": "Example~/ToolbarExtender/SceneViewFocuser"
+        }
+    ],
+    "hideInEditor": false
+}
