@@ -11,7 +11,7 @@ namespace SceneVitals
     [Icon("Assets/SceneVitals/Icon/icon_sceneVitals.png")]
     public class SceneVitalsOverlay : Overlay, ITransientOverlay
     {
-        private const string resourcesPath = "Packages/com.virendrakumar531.scenevitals/";
+        private const string resourcesPath = "Packages/com.virendra531.scenevitals/";
         private const string BASE_BLOCK_CLASS = "InfoBlock";
         private const string BASE_SUB_BLOCK_CLASS = "SubBlock";
         private const string GREEN_BLOCK_CLASS = "InfoBlock_green";
