@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 namespace SceneVitals
 {
     [Overlay(typeof(SceneView), "Scene Vitals", true)]
-    [Icon("Assets/SceneVitals/Icon/icon_sceneVitals.png")]
+    [Icon("Packages/com.virendra531.scenevitals/Editor/Icon/icon_sceneVitals.png")]
     public class SceneVitalsOverlay : Overlay, ITransientOverlay
     {
         private const string resourcesPath = "Packages/com.virendra531.scenevitals/";
