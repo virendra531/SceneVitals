@@ -9,10 +9,6 @@ public class SelectedFilesWindow : EditorWindow
     private ScrollView scrollView;
     private UnityEngine.Object[] selectedFiles = null;
 
-    private Vector2 startDragPosition;
-    private Rect dragSelectionRect;
-    private bool isDragging = false;
-
     [MenuItem("Tools/Selected Files")]
     public static void ShowWindow()
     {
@@ -28,111 +24,7 @@ public class SelectedFilesWindow : EditorWindow
         scrollView = new ScrollView();
         rootElement.Add(scrollView);
 
-        rootElement.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
-        rootElement.RegisterCallback<MouseUpEvent>(OnMouseUpEvent);
-        rootElement.RegisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
-
         RefreshWindow();
-    }
-
-    private void OnMouseDownEvent(MouseDownEvent evt)
-    {
-        if (evt.button == 0 && !evt.ctrlKey && !evt.shiftKey)
-        {
-            startDragPosition = evt.mousePosition;
-            dragSelectionRect = new Rect(startDragPosition, Vector2.zero);
-            isDragging = true;
-            evt.StopPropagation();
-        }
-    }
-
-    private void OnMouseUpEvent(MouseUpEvent evt)
-    {
-        if (evt.button == 0 && isDragging)
-        {
-            isDragging = false;
-            evt.StopPropagation();
-
-            SelectFilesInRect(dragSelectionRect);
-            Repaint();
-        }
-    }
-
-    private void OnMouseMoveEvent(MouseMoveEvent evt)
-    {
-        if (isDragging)
-        {
-            dragSelectionRect.size = evt.mousePosition - startDragPosition;
-            evt.StopPropagation();
-            Repaint();
-        }
-    }
-
-    private void SelectFilesInRect(Rect selectionRect)
-    {
-        if (selectedFiles == null)
-            return;
-
-        bool selectionChanged = false;
-        bool isShiftPressed = Event.current.shift;
-
-        for (int i = 0; i < selectedFiles.Length; i++)
-        {
-            UnityEngine.Object fileObject = selectedFiles[i];
-
-            Vector2 objectPosition = GetObjectPosition(i);
-
-            Rect objectRect = new Rect(objectPosition, new Vector2(80, 80)); // Assuming each object has a size of 80x80
-
-            if (selectionRect.Overlaps(objectRect))
-            {
-                if (!isShiftPressed && !Selection.Contains(fileObject))
-                {
-                    Selection.objects = new Object[] { fileObject };
-                    selectionChanged = true;
-                }
-                else if (isShiftPressed && !Selection.Contains(fileObject))
-                {
-                    Object[] newSelection = new Object[Selection.objects.Length + 1];
-                    Selection.objects.CopyTo(newSelection, 0);
-                    newSelection[newSelection.Length - 1] = fileObject;
-                    Selection.objects = newSelection;
-                    selectionChanged = true;
-                }
-            }
-            else
-            {
-                if (isShiftPressed && Selection.Contains(fileObject))
-                {
-                    Object[] newSelection = new Object[Selection.objects.Length - 1];
-                    int index = 0;
-                    foreach (Object selectedObject in Selection.objects)
-                    {
-                        if (selectedObject != fileObject)
-                        {
-                            newSelection[index] = selectedObject;
-                            index++;
-                        }
-                    }
-                    Selection.objects = newSelection;
-                    selectionChanged = true;
-                }
-            }
-        }
-
-        if (selectionChanged)
-            EditorGUIUtility.PingObject(Selection.activeObject);
-    }
-
-    private Vector2 GetObjectPosition(int index)
-    {
-        int colCount = 5;
-        int rowCount = Mathf.CeilToInt((float)selectedFiles.Length / colCount);
-        int row = index / colCount;
-        int col = index % colCount;
-        float posX = col * 100;
-        float posY = row * 100;
-        return new Vector2(posX, posY);
     }
 
     private void RefreshWindow()
@@ -148,10 +40,8 @@ public class SelectedFilesWindow : EditorWindow
             container.style.paddingRight = 10;
             scrollView.Add(container);
 
-            for (int i = 0; i < selectedFiles.Length; i++)
+            foreach (UnityEngine.Object fileObject in selectedFiles)
             {
-                UnityEngine.Object fileObject = selectedFiles[i];
-
                 Texture2D previewTexture = AssetPreview.GetAssetPreview(fileObject);
                 if (previewTexture == null)
                     previewTexture = AssetPreview.GetMiniThumbnail(fileObject);
@@ -164,8 +54,7 @@ public class SelectedFilesWindow : EditorWindow
                     container.Add(previewContainer);
 
                     Image previewElement = new Image() { image = previewTexture, style = { width = 80, height = 80 } };
-                    previewElement.RegisterCallback<MouseUpEvent>((evt) =>
-                    {
+                    previewElement.RegisterCallback<MouseUpEvent>((evt) => {
                         if (Event.current.shift)
                         {
                             // Add to the selection
