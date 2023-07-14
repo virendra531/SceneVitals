@@ -59,7 +59,9 @@ namespace SceneVitals
                     );
 
                     // SelectTextureFiles(response.textureMemorySizesMB.Take(40).ToList());
-                    SelectedFilesWindow.ShowWindow(SelectFiles(response.textureMemorySizesMB.Take(40).ToList()));
+                    // SelectedFilesWindow.ShowWindow(SelectFiles(response.textureMemorySizesMB.Take(40).ToList()));
+                    Selection.objects = SelectFiles(response.textureMemorySizesMB.Take(40).ToList());
+                    SelectedFilesWindow.ShowWindow();
                 // }
             }
             // -------------------- Textures --------------------
@@ -78,7 +80,9 @@ namespace SceneVitals
                         + "Here's a list of all objects(30 selected) with high vertex counts:\n - " + "<color=yellow>" + string.Join("\n - ", response.meshVertCounts.Take(30).Select(m => $"<color=red>{m.Item2}</color> - {m.Item1}")) + "</color>\n"
                     );
 
-                    SelectedFilesWindow.ShowWindow(SelectFiles(response.meshVertCounts.Take(30).ToList()));
+                    // SelectedFilesWindow.ShowWindow(SelectFiles(response.meshVertCounts.Take(30).ToList()));
+                    Selection.objects = SelectFiles(response.meshVertCounts.Take(30).ToList());
+                    SelectedFilesWindow.ShowWindow();
                 // }
             }
             // -------------------- Meshes --------------------
