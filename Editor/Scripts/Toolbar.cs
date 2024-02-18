@@ -13,6 +13,7 @@ namespace SceneVitals
     [InitializeOnLoad]
     public static class Toolbar
     {
+        private const string resourcesPath = "Packages/com.virendra531.scenevitals/";
         static Toolbar()
         {
             ToolbarExtender.RightToolbarGUI.Add(OnToolbarGUI);
@@ -35,7 +36,7 @@ namespace SceneVitals
                 buttonText = "Test Active Scene";
                 buttonTooltipText = $"Check console window for report";
 
-                if (GUILayout.Button(new GUIContent($"{buttonText}", EditorGUIUtility.IconContent("d_DebuggerEnabled").image, buttonTooltipText), GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(new GUIContent($"{buttonText}", EditorGUIUtility.IconContent($"{resourcesPath}/Editor/Icon/d_DebuggerEnabled.png").image, buttonTooltipText), GUILayout.ExpandWidth(false)))
                 {
                     ScenePerformance.TestScenePerformance(EditorSceneManager.GetActiveScene());
                 }
@@ -44,7 +45,7 @@ namespace SceneVitals
 
             // -------------------- Textures --------------------
             buttonTooltipText = $"Select texture(selected 40) that has high memory usage";
-            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_PreTextureMipMapHigh").image, buttonTooltipText), GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent($"{resourcesPath}/Editor/Icon/d_PreTextureMipMapHigh.png").image, buttonTooltipText), GUILayout.ExpandWidth(false)))
             {
                 PerformanceResponse response = ScenePerformance.GetActiveScenePerformanceResponse();
                 Scene scene = EditorSceneManager.GetActiveScene();
@@ -68,7 +69,7 @@ namespace SceneVitals
 
             // -------------------- Meshes --------------------
             buttonTooltipText = $"Select mesh(selected 30) that has high memory usage";
-            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("d_PreMatCube").image, buttonTooltipText), GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent($"{resourcesPath}/Editor/Icon/d_PreMatCube.png").image, buttonTooltipText), GUILayout.ExpandWidth(false)))
             {
                 PerformanceResponse response = ScenePerformance.GetActiveScenePerformanceResponse();
                 Scene scene = EditorSceneManager.GetActiveScene();
@@ -89,7 +90,7 @@ namespace SceneVitals
 
             // -------------------- Mesh Colliders --------------------
             buttonTooltipText = $"Select mesh collider(selected 30) that high density mesh colliders";
-            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent("ObjectMode").image, buttonTooltipText), GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button(new GUIContent("", EditorGUIUtility.IconContent($"{resourcesPath}/Editor/Icon/d_ObjectMode.png").image, buttonTooltipText), GUILayout.ExpandWidth(false)))
             {
                 PerformanceResponse response = ScenePerformance.GetActiveScenePerformanceResponse();
                 Scene scene = EditorSceneManager.GetActiveScene();
