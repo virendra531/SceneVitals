@@ -33,29 +33,31 @@ namespace SceneVitals
         public string sceneName;
         public string scenePath;
 
-        public bool hasLightmaps => lightmapTextureMB > 0;
+        public bool hasLightmaps => lightmapTextureBytes > 0;
         public bool hasLightprobes;
         public bool hasReflectionProbes;
 
-        public int lightmapTextureMB;
-        public int verts;
-        public int uniqueVerts;
+        public long verts;
+        public long uniqueVerts;
         public int uniqueMaterials;
-        public int materialTextureMB;
-        public int meshColliderVerts;
+        public long meshColliderVerts;
         public int realtimeLights;
-        public int reflectionProbeMB;//textures
+
+        public long lightmapTextureBytes;
+        public long materialTextureBytes;
+        public long reflectionProbeBytes; // memory used by reflection probes textures
 
         // Per asset data about their size
-        public IReadOnlyList<Tuple<string, int>> meshVertCounts;
-        public IReadOnlyList<Tuple<string, int>> meshColliderVertCounts;
-        public IReadOnlyList<Tuple<string, float>> textureMemorySizesMB;
+        public IReadOnlyList<Tuple<string, long>> meshVertCounts;
+        public IReadOnlyList<Tuple<string, long>> meshColliderVertCounts;
+        public IReadOnlyList<Tuple<string, long>> textureMemoryBytes;
 
-        public int sharedTextureMB => materialTextureMB + lightmapTextureMB + reflectionProbeMB;
+
+        public long sharedTextureMB => (materialTextureBytes + lightmapTextureBytes + reflectionProbeBytes) / 1024 / 1024;
 
         //how long it took to analyze the scene.
         //used in sceneVitals to auto adjust the refresh rate.
-        public float responseMiliseconds;
+        public float responseMilliseconds;
 
         public float vertPercent => (float)verts / MAX_SUGGESTED_VERTS;
         public float uniqueMaterialsPercent => (float)uniqueMaterials / MAX_SUGGESTED_UNIQUE_MATERIALS;
@@ -65,6 +67,10 @@ namespace SceneVitals
 
     public class ScenePerformance
     {
+        private const long KB = 1024L;
+        private const long MB = 1024L * 1024L;
+        private const long GB = 1024L * 1024L * 1024L;
+
         // // WIP
         // public static void GetActiveScenePackageResponseSlow()
         // {
@@ -96,16 +102,16 @@ namespace SceneVitals
             var timer = System.Diagnostics.Stopwatch.StartNew();
             var scene = EditorSceneManager.GetActiveScene();
 
-            List<Tuple<string, int>> meshVertCounts = new List<Tuple<string, int>>();
-            List<Tuple<string, int>> meshColliderVertCounts = new List<Tuple<string, int>>();
-            List<Tuple<string, float>> textureSizesMB = new List<Tuple<string, float>>();
+            List<Tuple<string, long>> meshVertCounts = new List<Tuple<string, long>>();
+            List<Tuple<string, long>> meshColliderVertCounts = new List<Tuple<string, long>>();
+            List<Tuple<string, long>> textureSizesBytes = new List<Tuple<string, long>>();
 
             PerformanceResponse response = new PerformanceResponse();
             response.sceneName = scene.name;
             response.scenePath = scene.path;
             response.meshVertCounts = meshVertCounts;
             response.meshColliderVertCounts = meshColliderVertCounts;
-            response.textureMemorySizesMB = textureSizesMB;
+            response.textureMemoryBytes = textureSizesBytes;
 
             // Count lightmaps size
             long bytes = 0;
@@ -116,28 +122,28 @@ namespace SceneVitals
                 {
                     long sizeInBytes = Profiler.GetRuntimeMemorySizeLong(lightmap.lightmapColor);
                     bytes += sizeInBytes;
-                    textureSizesMB.Add(new Tuple<string, float>(AssetDatabase.GetAssetPath(lightmap.lightmapColor), sizeInBytes / 1024f / 1024f));
+                    textureSizesBytes.Add(new Tuple<string, long>(AssetDatabase.GetAssetPath(lightmap.lightmapColor), sizeInBytes));
                 }
                 if (lightmap.lightmapDir != null)
                 {
                     long sizeInBytes = Profiler.GetRuntimeMemorySizeLong(lightmap.lightmapDir);
                     bytes += sizeInBytes;
-                    textureSizesMB.Add(new Tuple<string, float>(AssetDatabase.GetAssetPath(lightmap.lightmapDir), sizeInBytes / 1024f / 1024f));
+                    textureSizesBytes.Add(new Tuple<string, long>(AssetDatabase.GetAssetPath(lightmap.lightmapDir), sizeInBytes));
                 }
                 if (lightmap.shadowMask != null)
                 {
                     long sizeInBytes = Profiler.GetRuntimeMemorySizeLong(lightmap.shadowMask);
                     bytes += sizeInBytes;
-                    textureSizesMB.Add(new Tuple<string, float>(AssetDatabase.GetAssetPath(lightmap.shadowMask), sizeInBytes / 1024f / 1024f));
+                    textureSizesBytes.Add(new Tuple<string, long>(AssetDatabase.GetAssetPath(lightmap.shadowMask), sizeInBytes));
                 }
             }
-            response.lightmapTextureMB = (int)bytes / 1024 / 1024;
+            response.lightmapTextureBytes = bytes;
 
             // Count scene object sizes
             List<Texture> foundTextures = new List<Texture>();
             List<Material> materials = new List<Material>();
             List<Mesh> foundMeshes = new List<Mesh>();
-            Renderer[] renderers = GameObject.FindObjectsOfType<Renderer>(true);
+            Renderer[] renderers = UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
             foreach (Renderer renderer in renderers)
             {
@@ -183,8 +189,8 @@ namespace SceneVitals
                 }
             }
             IEnumerable<Mesh> uniqueMeshes = foundMeshes.Distinct();
-            meshVertCounts.AddRange(uniqueMeshes.Select(m => new Tuple<string, int>(AssetDatabase.GetAssetPath(m), m.vertexCount)));
-            response.uniqueVerts = uniqueMeshes.Distinct().Sum(m => m.vertexCount);
+            meshVertCounts.AddRange(uniqueMeshes.Select(m => new Tuple<string, long>(AssetDatabase.GetAssetPath(m), (long)m.vertexCount)));
+            response.uniqueVerts = uniqueMeshes.Distinct().Sum(m => (long)m.vertexCount);
             response.uniqueMaterials = materials.FindAll(m => m != null).Select(m => m.name).Distinct().Count();
 
             // Count texture sizes
@@ -193,23 +199,23 @@ namespace SceneVitals
             {
                 long sizeInBytes = Profiler.GetRuntimeMemorySizeLong(texture);
                 bytes += sizeInBytes;
-                textureSizesMB.Add(new Tuple<string, float>(AssetDatabase.GetAssetPath(texture), sizeInBytes / 1024f / 1024f));
+                textureSizesBytes.Add(new Tuple<string, long>(AssetDatabase.GetAssetPath(texture), sizeInBytes));
             }
-            response.materialTextureMB = (int)(bytes / 1024 / 1024);
+            response.materialTextureBytes = bytes;
 
             // Count mesh collider vertices
-            MeshCollider[] meshColliders = GameObject.FindObjectsOfType<MeshCollider>(true);
+            MeshCollider[] meshColliders = UnityEngine.Object.FindObjectsByType<MeshCollider>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (MeshCollider meshCollider in meshColliders)
             {
                 if (meshCollider.sharedMesh != null)
                 {
                     response.meshColliderVerts += meshCollider.sharedMesh.vertexCount;
-                    meshColliderVertCounts.Add(new Tuple<string, int>(GetGameObjectPath(meshCollider.gameObject), meshCollider.sharedMesh.vertexCount));
+                    meshColliderVertCounts.Add(new Tuple<string, long>(GetGameObjectPath(meshCollider.gameObject), (long)meshCollider.sharedMesh.vertexCount));
                 }
             }
 
             // Look for light / reflection probes
-            LightProbeGroup[] lightProbeGroups = GameObject.FindObjectsOfType<LightProbeGroup>(true);
+            LightProbeGroup[] lightProbeGroups = UnityEngine.Object.FindObjectsByType<LightProbeGroup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (LightProbeGroup lightProbeGroup in lightProbeGroups)
             {
                 if (lightProbeGroup.probePositions.Length > 0)
@@ -218,38 +224,38 @@ namespace SceneVitals
                     break;
                 }
             }
-            if (GameObject.FindObjectsOfType<ReflectionProbe>(true).Length > 0)
+            if (UnityEngine.Object.FindObjectsByType<ReflectionProbe>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length > 0)
             {
                 response.hasReflectionProbes = true;
             }
 
             // Look for lights
-            Light[] lights = GameObject.FindObjectsOfType<Light>(true);
+            Light[] lights = UnityEngine.Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             response.realtimeLights = lights.Where(l => l.lightmapBakeType != LightmapBakeType.Baked).Count();
 
             bytes = 0;
-            ReflectionProbe[] reflectionProbes = GameObject.FindObjectsOfType<ReflectionProbe>(true);
+            ReflectionProbe[] reflectionProbes = UnityEngine.Object.FindObjectsByType<ReflectionProbe>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (ReflectionProbe probe in reflectionProbes)
             {
                 if (probe.mode == UnityEngine.Rendering.ReflectionProbeMode.Baked && probe.texture != null)
                 {
                     bytes += Profiler.GetRuntimeMemorySizeLong(probe.texture);
                 }
-                //realtime probes are currently disabled... but leaving this incase we enable them down the road.
+                //realtime probes are currently disabled... but leaving this in case we enable them down the road.
                 else if (probe.mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
                 {
-                    bytes += probe.resolution * probe.resolution * 3;
+                    bytes += (long)probe.resolution * (long)probe.resolution * 3L;
                 }
             }
-            response.reflectionProbeMB = (int)(bytes / 1024 / 1024);
+            response.reflectionProbeBytes = bytes;
 
             // Sort by size descending
             meshVertCounts.Sort((a, b) => b.Item2.CompareTo(a.Item2));
             meshColliderVertCounts.Sort((a, b) => b.Item2.CompareTo(a.Item2));
-            textureSizesMB.Sort((a, b) => b.Item2.CompareTo(a.Item2));
+            textureSizesBytes.Sort((a, b) => b.Item2.CompareTo(a.Item2));
 
             timer.Stop();
-            response.responseMiliseconds = timer.ElapsedMilliseconds;
+            response.responseMilliseconds = timer.ElapsedMilliseconds;
 
             return response;
         }
@@ -335,10 +341,10 @@ namespace SceneVitals
                     + $"For WebGL it is encouraged to be be limited to {PerformanceResponse.MAX_SUGGESTED_SHARED_TEXTURE_MB} MB of shared textures. \n"
                     + "High memory usage can cause application crashes on lower end devices. It is highly recommended that you stay within the suggested limits. \n"
                     + "Compressing your textures will help reduce their size.\n"
-                    + "Here's a list of all textures(40 selected) used by the scene:\n - " + "<color=yellow>" + string.Join("\n - ", response.textureMemorySizesMB.Take(40).Select(m => $"<color=red>{m.Item2:0.00}MB</color> - {m.Item1}")) + "</color>\n"
+                    + "Here's a list of all textures(40 selected) used by the scene:\n - " + "<color=yellow>" + string.Join("\n - ", response.textureMemoryBytes.Take(40).Select(m => $"<color=red>{(m.Item2 / (float)MB):0.00}MB</color> - {m.Item1}")) + "</color>\n"
                 );
 
-                // SelectTextureFiles(response.textureMemorySizesMB.Take(40).ToList());
+                // SelectTextureFiles(response.textureMemoryBytes.Take(40).ToList());
                 // SelectedFilesWindow.ShowWindow();
             }
         }

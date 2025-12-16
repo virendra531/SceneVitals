@@ -118,7 +118,7 @@ namespace SceneVitals
             PerformanceResponse resp = ScenePerformance.GetActiveScenePerformanceResponse();
 
             // Change the refresh frequency based on how long the request takes, since it can affect performance of large scenes and slow computers.
-            _autoRefreshEvery = Mathf.Clamp(resp.responseMiliseconds * 5f, 5f, 100f);
+            _autoRefreshEvery = Mathf.Clamp(resp.responseMilliseconds * 5f, 5f, 100f);
 
             SetBaseClass(_verticesBlock);
             SetBlockClassFromRatio(_verticesBlock, resp.vertPercent);
@@ -133,10 +133,10 @@ namespace SceneVitals
             SetBlockClassFromRatio(_sharedTexturesSubBlock, resp.sharedTexturePercent);
             _sharedTexturesCount.text = AbbreviateSize(resp.sharedTextureMB);
             _sharedTexturesMax.text = "/ " + AbbreviateSize(PerformanceResponse.MAX_SUGGESTED_SHARED_TEXTURE_MB);
-            _materialTexturesCount.text = AbbreviateSize(resp.materialTextureMB);
-            _lightmapTexturesCount.text = AbbreviateSize(resp.lightmapTextureMB);
-            _reflectionProbeBlock.style.display = resp.reflectionProbeMB > 0 ? DisplayStyle.Flex : DisplayStyle.None;
-            _reflectionProbeCount.text = AbbreviateSize(resp.reflectionProbeMB);
+            _materialTexturesCount.text = AbbreviateSize(resp.materialTextureBytes);
+            _lightmapTexturesCount.text = AbbreviateSize(resp.lightmapTextureBytes);
+            _reflectionProbeBlock.style.display = resp.reflectionProbeBytes > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            _reflectionProbeCount.text = AbbreviateSize(resp.reflectionProbeBytes);
             _textureIcon.ClearClassList();
             SetBlockClassFromRatio(_textureIcon, resp.sharedTexturePercent);
 
@@ -226,27 +226,22 @@ namespace SceneVitals
         //     }
         // }
 
+        private const long KB = 1024L;
+        private const long MB = 1024L * 1024L;
+        private const long GB = 1024L * 1024L * 1024L;
         // Bytes(Bytes), KiloByte(KB), MegaByte(MB), GigaByte(GB)
-        public string AbbreviateSize(int number)
+        public string AbbreviateSize(long bytes)
         {
-            number = number * 1000000;
-            if (number < 1000)
-            {
-                return number.ToString() + "Byte";
-            }
-            else if (number < 1000000)
-            {
-                return (number / 1000f).ToString("0.#") + "KB";
-            }
-            else if (number < 1000000000)
-            {
-                return (number / 1000000f).ToString("0.#") + "MB";
-            }
-            else
-            {
-                return (number / 1000000000f).ToString("0.#") + "GB";
-            }
+            if (bytes < KB)
+                return bytes + "Bytes";
+            if (bytes < MB)
+                return (bytes / (float)KB).ToString("0.#") + "KB";
+            if (bytes < GB)
+                return (bytes / (float)MB).ToString("0.#") + "MB";
+
+            return (bytes / (float)GB).ToString("0.#") + "GB";
         }
+
     }
 }
 #endif
