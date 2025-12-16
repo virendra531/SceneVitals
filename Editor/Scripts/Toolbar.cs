@@ -56,12 +56,12 @@ namespace SceneVitals
                         + $"For WebGL it is encouraged to be be limited to {PerformanceResponse.MAX_SUGGESTED_SHARED_TEXTURE_MB} MB of shared textures. \n"
                         + "High memory usage can cause application crashes on lower end devices. It is highly recommended that you stay within the suggested limits. \n"
                         + "Compressing your textures will help reduce their size.\n"
-                        + "Here's a list of all textures(40 selected) used by the scene:\n - " + "<color=yellow>" + string.Join("\n - ", response.textureMemorySizesMB.Take(40).Select(m => $"<color=red>{m.Item2:0.00}MB</color> - {m.Item1}")) + "</color>\n"
+                        + "Here's a list of all textures(40 selected) used by the scene:\n - " + "<color=yellow>" + string.Join("\n - ", response.textureMemoryBytes.Take(40).Select(m => $"<color=red>{m.Item2:0.00}MB</color> - {m.Item1}")) + "</color>\n"
                     );
 
                     // SelectTextureFiles(response.textureMemorySizesMB.Take(40).ToList());
                     // SelectedFilesWindow.ShowWindow(SelectFiles(response.textureMemorySizesMB.Take(40).ToList()));
-                    Selection.objects = SelectFiles(response.textureMemorySizesMB.Take(40).ToList());
+                    Selection.objects = SelectFiles(response.textureMemoryBytes.Take(40).ToList());
                     SelectedFilesWindow.ShowWindow();
                 // }
             }

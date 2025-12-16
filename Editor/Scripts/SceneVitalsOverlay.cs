@@ -176,7 +176,7 @@ namespace SceneVitals
         }
 
         // Thousand(K), Million(M), Billion(B)
-        public string AbbreviateNumber(int number)
+        public string AbbreviateNumber(long number)
         {
             if (number < 1000)
             {
@@ -186,21 +186,21 @@ namespace SceneVitals
             {
                 return (number / 1000f).ToString("0.#") + "K";
             }
-            else if (number < 1000000)
+            else if (number < 1_000_000)
             {
                 return (number / 1000).ToString() + "K";
             }
-            else if (number < 10000000)
+            else if (number < 10_000_000)
             {
-                return (number / 1000000f).ToString("0.#") + "M";
+                return (number / 1_000_000f).ToString("0.#") + "M";
             }
-            else if (number < 1000000000)
+            else if (number < 1_000_000_000)
             {
-                return (number / 1000000).ToString() + "M";
+                return (number / 1_000_000).ToString() + "M";
             }
             else
             {
-                return (number / 1000000000f).ToString("0.#") + "B";
+                return (number / 1_000_000_000f).ToString("0.#") + "B";
             }
         }
 
