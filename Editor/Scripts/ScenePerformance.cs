@@ -54,6 +54,8 @@ namespace SceneVitals
 
 
         public long sharedTextureMB => (materialTextureBytes + lightmapTextureBytes + reflectionProbeBytes) / 1024 / 1024;
+        public long sharedTextureBytes => materialTextureBytes + lightmapTextureBytes + reflectionProbeBytes;
+
 
         //how long it took to analyze the scene.
         //used in sceneVitals to auto adjust the refresh rate.

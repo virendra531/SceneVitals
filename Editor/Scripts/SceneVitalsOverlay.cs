@@ -131,8 +131,8 @@ namespace SceneVitals
             SetBaseClass(_sharedTexturesSubBlock, true);
             SetBlockClassFromRatio(_sharedTexturesBlock, resp.sharedTexturePercent);
             SetBlockClassFromRatio(_sharedTexturesSubBlock, resp.sharedTexturePercent);
-            _sharedTexturesCount.text = AbbreviateSize(resp.sharedTextureMB);
-            _sharedTexturesMax.text = "/ " + AbbreviateSize(PerformanceResponse.MAX_SUGGESTED_SHARED_TEXTURE_MB);
+            _sharedTexturesCount.text = AbbreviateSize(resp.sharedTextureBytes);
+            _sharedTexturesMax.text = "/ " + AbbreviateSize(PerformanceResponse.MAX_SUGGESTED_SHARED_TEXTURE_MB * 1024L * 1024L);
             _materialTexturesCount.text = AbbreviateSize(resp.materialTextureBytes);
             _lightmapTexturesCount.text = AbbreviateSize(resp.lightmapTextureBytes);
             _reflectionProbeBlock.style.display = resp.reflectionProbeBytes > 0 ? DisplayStyle.Flex : DisplayStyle.None;
